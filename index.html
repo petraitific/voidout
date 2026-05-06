@@ -381,11 +381,39 @@
 
   // ─── Device ID ───────────────────────────────────────────────
   function getDeviceId() {
+    // Try localStorage first
     let id = localStorage.getItem('voidout_device_id');
-    if (!id) {
-      id = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem('voidout_device_id', id);
+    if (id) return id;
+
+    // Try sessionStorage as backup
+    id = sessionStorage.getItem('voidout_device_id');
+    if (id) {
+      // Restore to localStorage
+      try { localStorage.setItem('voidout_device_id', id); } catch(e) {}
+      return id;
     }
+
+    // Generate new ID from browser fingerprint
+    const fingerprint = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height,
+      screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      navigator.hardwareConcurrency || '',
+      navigator.platform || ''
+    ].join('|');
+
+    // Hash it
+    let hash = 0;
+    for (let i = 0; i < fingerprint.length; i++) {
+      hash = ((hash << 5) - hash) + fingerprint.charCodeAt(i);
+      hash |= 0;
+    }
+    id = 'fp_' + Math.abs(hash).toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+
+    try { localStorage.setItem('voidout_device_id', id); } catch(e) {}
+    try { sessionStorage.setItem('voidout_device_id', id); } catch(e) {}
     return id;
   }
 
