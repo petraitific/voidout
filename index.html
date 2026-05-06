@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="theme-color" content="#2C2C2A"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="voidout"/>
+  <title>voidout</title>
+  <link rel="manifest" href="manifest.json"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
+
+    :root {
+      --bg: #2C2C2A;
+      --bg-card: #383836;
+      --bg-deep: #222220;
+      --border: #444441;
+      --border-light: #5F5E5A;
+      --text-primary: #F1EFE8;
+      --text-secondary: #888780;
+      --text-muted: #5F5E5A;
+      --purple-deep: #534AB7;
+      --purple-mid: #7F77DD;
+      --purple-light: #AFA9EC;
+      --purple-pale: #CECBF6;
+      --purple-faint: #EEEDFE;
+      --green: #639922;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif;
+      overscroll-behavior: none;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+    }
+
+    .statusbar {
+      padding: 16px 22px 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .appname {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    /* SCREENS */
+    .screen {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px 20px 40px;
+      flex: 1;
+    }
+    .screen.active { display: flex; animation: fadeInUp 0.4s ease forwards; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0 12px;
+    }
+    .hero-title {
+      font-size: 19px;
+      font-weight: 500;
+      color: var(--text-primary);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .hero-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* LOGO */
+    @keyframes slow-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes slow-rotate-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+    .r1 { animation: slow-rotate 16s linear infinite; transform-origin: 44px 44px; }
+    .r2 { animation: slow-rotate-reverse 22s linear infinite; transform-origin: 44px 44px; }
+
+    /* FIELDS */
+    .field {
+      background: var(--bg-card);
+      border-radius: 14px;
+      border: 0.5px solid var(--border-light);
+      padding: 14px 16px;
+    }
+    .field label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      display: block;
+      margin-bottom: 8px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      color: var(--text-primary);
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      line-height: 1.65;
+    }
+    .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+    .field textarea { min-height: 130px; resize: none; }
+    .char-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .char-count { font-size: 12px; color: var(--text-muted); }
+    .char-count.warn { color: #EF9F27; }
+    .char-count.danger { color: #E24B4A; }
+
+    /* BUTTON */
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      background: var(--purple-mid);
+      border: none;
+      outline: none;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0.01em;
+      margin-top: 4px;
+      position: relative;
+      overflow: hidden;
+      -webkit-appearance: none;
+      appearance: none;
+      text-align: center;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--purple-light); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .ripple {
+      position: absolute; border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      transform: scale(0);
+      animation: ripple-anim 0.55s linear;
+      pointer-events: none;
+    }
+    @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
+
+    .footer-note { font-size: 12px; color: var(--text-muted); text-align: center; }
+
+    /* COOLDOWN SCREEN */
+    .cooldown-box {
+      background: var(--bg-card);
+      border-radius: 14px;
+      border: 0.5px solid var(--border-light);
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+    .cooldown-label { font-size: 12px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; }
+    .cooldown-timer { font-size: 38px; font-weight: 300; color: var(--text-primary); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+    .cooldown-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* CONFIRMATION SCREEN */
+    .confirm-top {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 10px;
+      padding: 4px 0; text-align: center;
+    }
+    .confirm-top h3 { font-size: 19px; font-weight: 500; color: var(--text-primary); }
+    .confirm-top p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+    .confirm-top p em { color: var(--purple-light); font-style: normal; }
+
+    @keyframes slideUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+    .recv-card {
+      background: var(--bg-card);
+      border-radius: 14px;
+      border: 0.5px solid var(--border-light);
+      padding: 18px;
+      opacity: 0;
+    }
+    .recv-card.animate { animation: slideUp 0.5s ease 0.2s forwards; }
+    .recv-label { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+    .recv-text { font-size: 15px; color: var(--text-primary); line-height: 1.75; }
+    .recv-meta { font-size: 12px; color: var(--text-muted); margin-top: 12px; }
+
+    .sent-badge {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--bg-deep); border-radius: 12px;
+      border: 0.5px solid var(--border); padding: 14px;
+    }
+    .sent-badge-text { display: flex; flex-direction: column; gap: 3px; }
+    .sent-badge-title { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+    .sent-badge-sub { font-size: 12px; color: var(--text-muted); font-style: italic; }
+
+    .divider { height: 0.5px; background: var(--border); }
+
+    .timer-row { display: flex; justify-content: center; }
+    .timer-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--bg-card); border-radius: 99px;
+      padding: 9px 18px; font-size: 13px; color: var(--text-secondary);
+    }
+    .timer-pill strong { color: var(--text-secondary); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+    .nav-btn {
+      background: none; border: none; font-size: 13px;
+      color: var(--text-muted); cursor: pointer;
+      font-family: 'DM Sans', sans-serif; text-align: center;
+      transition: color 0.15s;
+    }
+    .nav-btn:hover { color: var(--purple-light); }
+
+    /* ERROR */
+    .error-msg {
+      font-size: 13px; color: #E24B4A;
+      text-align: center; display: none;
+    }
+
+    /* LOADING SPINNER */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block; vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="statusbar">
+    <span class="appname">void</span>
+  </div>
+
+  <!-- HOME SCREEN -->
+  <div class="screen active" id="screen-home">
+    <div class="hero">
+      <svg width="88" height="88" viewBox="0 0 88 88">
+        <g class="r2" style="transform-origin:44px 44px">
+          <circle cx="44" cy="44" r="38" fill="none" stroke="#534AB7" stroke-width="1.5" stroke-dasharray="60 10" stroke-opacity="0.6"/>
+        </g>
+        <g class="r1" style="transform-origin:44px 44px">
+          <circle cx="44" cy="44" r="32" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-dasharray="50 10" stroke-opacity="0.75"/>
+        </g>
+        <circle cx="44" cy="44" r="26" fill="none" stroke="#AFA9EC" stroke-width="1" stroke-opacity="0.55"/>
+        <circle cx="44" cy="44" r="20" fill="none" stroke="#CECBF6" stroke-width="4" stroke-opacity="0.1"/>
+        <circle cx="44" cy="44" r="20" fill="none" stroke="#CECBF6" stroke-width="1.5" stroke-opacity="0.8"/>
+        <circle cx="44" cy="44" r="14" fill="none" stroke="#FFFFFF" stroke-width="1" stroke-opacity="0.7"/>
+        <circle cx="44" cy="44" r="10" fill="#2C2C2A"/>
+      </svg>
+      <p class="hero-title">Scream into the void.<br>Hear it back.</p>
+      <p class="hero-sub">Anonymous · Unfiltered · Heard</p>
+    </div>
+
+    <div class="field">
+      <label>your alias</label>
+      <input type="text" id="nickname" placeholder="something anonymous" maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false"/>
+    </div>
+
+    <div class="field">
+      <label>your rant</label>
+      <textarea id="message" placeholder="Let it out. Nobody here knows you." maxlength="500"></textarea>
+      <div class="char-row"><span class="char-count" id="counter">500</span></div>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+    <button class="btn-primary" id="release-btn" onclick="submitRant(event)">Release it →</button>
+    <p class="footer-note">Once every 24 hours. No accounts. No receipts.</p>
+  </div>
+
+  <!-- COOLDOWN SCREEN -->
+  <div class="screen" id="screen-cooldown">
+    <div class="hero">
+      <svg width="88" height="88" viewBox="0 0 88 88">
+        <g class="r2" style="transform-origin:44px 44px">
+          <circle cx="44" cy="44" r="38" fill="none" stroke="#534AB7" stroke-width="1.5" stroke-dasharray="60 10" stroke-opacity="0.6"/>
+        </g>
+        <g class="r1" style="transform-origin:44px 44px">
+          <circle cx="44" cy="44" r="32" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-dasharray="50 10" stroke-opacity="0.75"/>
+        </g>
+        <circle cx="44" cy="44" r="26" fill="none" stroke="#AFA9EC" stroke-width="1" stroke-opacity="0.55"/>
+        <circle cx="44" cy="44" r="20" fill="none" stroke="#CECBF6" stroke-width="4" stroke-opacity="0.1"/>
+        <circle cx="44" cy="44" r="20" fill="none" stroke="#CECBF6" stroke-width="1.5" stroke-opacity="0.8"/>
+        <circle cx="44" cy="44" r="14" fill="none" stroke="#FFFFFF" stroke-width="1" stroke-opacity="0.7"/>
+        <circle cx="44" cy="44" r="10" fill="#2C2C2A"/>
+      </svg>
+      <p class="hero-title">The void remembers.</p>
+      <p class="hero-sub">You've already screamed today</p>
+    </div>
+    <div class="cooldown-box">
+      <div class="cooldown-label">Back in</div>
+      <div class="cooldown-timer" id="cooldown-timer">00:00:00</div>
+      <div class="cooldown-sub">Your rant is still drifting.<br>Come back when the void is ready.</div>
+    </div>
+    <p class="footer-note">Once every 24 hours. No accounts. No receipts.</p>
+  </div>
+
+  <!-- SENT SCREEN -->
+  <div class="screen" id="screen-sent">
+    <div class="confirm-top">
+      <svg width="72" height="72" viewBox="0 0 88 88">
+        <g class="r2" style="transform-origin:44px 44px">
+          <circle cx="44" cy="44" r="38" fill="none" stroke="#534AB7" stroke-width="1.5" stroke-dasharray="60 10" stroke-opacity="0.6"/>
+        </g>
+        <g class="r1" style="transform-origin:44px 44px">
+          <circle cx="44" cy="44" r="32" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-dasharray="50 10" stroke-opacity="0.75"/>
+        </g>
+        <circle cx="44" cy="44" r="26" fill="none" stroke="#AFA9EC" stroke-width="1" stroke-opacity="0.55"/>
+        <circle cx="44" cy="44" r="20" fill="none" stroke="#CECBF6" stroke-width="4" stroke-opacity="0.1"/>
+        <circle cx="44" cy="44" r="20" fill="none" stroke="#CECBF6" stroke-width="1.5" stroke-opacity="0.8"/>
+        <circle cx="44" cy="44" r="14" fill="none" stroke="#FFFFFF" stroke-width="1" stroke-opacity="0.7"/>
+        <circle cx="44" cy="44" r="10" fill="#2C2C2A"/>
+      </svg>
+      <h3 id="confirm-title">Gone. Good riddance.</h3>
+      <p id="confirm-sub">The void swallowed it whole.<br>But it spat <em>this</em> back at you.</p>
+    </div>
+
+    <div class="recv-card" id="recv-card">
+      <div class="recv-label">a stranger's rant</div>
+      <div class="recv-text" id="recv-message">—</div>
+      <div class="recv-meta">from <span id="recv-from">—</span> · <span id="recv-time">—</span></div>
+    </div>
+
+    <div class="sent-badge">
+      <svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0;margin-top:2px;">
+        <circle cx="8" cy="8" r="7" fill="none" stroke="#639922" stroke-width="1.5"/>
+        <path d="M4.5 8 L7 10.5 L11.5 5.5" fill="none" stroke="#639922" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="sent-badge-text">
+        <span class="sent-badge-title">Your rant was sent.</span>
+        <span class="sent-badge-sub">Drifting into the dark — someone will find it.</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="timer-row">
+      <div class="timer-pill">⏳ Back in <strong id="sent-countdown">&nbsp;23:59:59</strong></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://crqzfhuwpgalocugjnmv.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNycXpmaHV3cGdhbG9jdWdqbm12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMjkxMDUsImV4cCI6MjA5MzYwNTEwNX0.xQVKzm_Vb3calGFFt0vN7SGQpcg2GTz-WWErs838cs8';
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+  };
+
+  // ─── Device ID ───────────────────────────────────────────────
+  function getDeviceId() {
+    let id = localStorage.getItem('voidout_device_id');
+    if (!id) {
+      id = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('voidout_device_id', id);
+    }
+    return id;
+  }
+
+  // ─── Supabase helpers ────────────────────────────────────────
+  async function rpc(fn, params) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(params)
+    });
+    return res.json();
+  }
+
+  async function insertRant(alias, message, deviceId) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rants`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'return=representation' },
+      body: JSON.stringify({ alias, message, device_id: deviceId })
+    });
+    return res.json();
+  }
+
+  async function insertDelivery(deviceId, rantId) {
+    await fetch(`${SUPABASE_URL}/rest/v1/deliveries`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ device_id: deviceId, rant_id: rantId })
+    });
+  }
+
+  // ─── Screen management ───────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => {
+      s.classList.remove('active');
+      s.style.animation = '';
+      s.style.opacity = '';
+    });
+    const el = document.getElementById(id);
+    el.classList.add('active');
+    el.style.opacity = '0';
+    el.style.animation = 'fadeInUp 0.4s ease forwards';
+  }
+
+  // ─── Countdown timer ────────────────────────────────────────
+  let countdownInterval = null;
+
+  function startCountdown(seconds, elementId) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    let total = seconds;
+    const el = document.getElementById(elementId);
+    function tick() {
+      if (total <= 0) { clearInterval(countdownInterval); el.textContent = '00:00:00'; return; }
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      el.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      total--;
+    }
+    tick();
+    countdownInterval = setInterval(tick, 1000);
+  }
+
+  // ─── Headline rotation ───────────────────────────────────────
+  const headlines = [
+    { title: "Gone. Good riddance.", sub: "The void swallowed it whole.<br>But it spat <em>this</em> back at you." },
+    { title: "Screamed. Heard.", sub: "Somewhere out there, a stranger just got your rant.<br>Here's theirs." },
+    { title: "Released into the dark.", sub: "You're not the only one losing it today.<br>Proof below." },
+    { title: "The void listened.", sub: "It doesn't judge. It doesn't reply.<br>But it traded." },
+    { title: "Out of your chest.", sub: "One stranger's burden for yours.<br>Fair trade." },
+  ];
+
+  // ─── Time formatting ─────────────────────────────────────────
+  function timeAgo(dateStr) {
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+    return Math.floor(diff / 86400) + ' days ago';
+  }
+
+  // ─── Show error ──────────────────────────────────────────────
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 4000);
+  }
+
+  // ─── Ripple effect ───────────────────────────────────────────
+  document.getElementById('release-btn').addEventListener('click', function(e) {
+    const btn = this;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(btn.offsetWidth, btn.offsetHeight);
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;`;
+    btn.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove());
+  });
+
+  // ─── Char counter ────────────────────────────────────────────
+  const msgEl = document.getElementById('message');
+  const counter = document.getElementById('counter');
+  msgEl.addEventListener('input', () => {
+    const left = 500 - msgEl.value.length;
+    counter.textContent = left;
+    counter.className = 'char-count' + (left < 50 ? ' danger' : left < 100 ? ' warn' : '');
+  });
+
+  // ─── SUBMIT RANT ─────────────────────────────────────────────
+  async function submitRant(e) {
+    const alias = document.getElementById('nickname').value.trim();
+    const message = document.getElementById('message').value.trim();
+    if (!alias) { showError('Please enter an alias.'); return; }
+    if (!message) { showError('Please write something first.'); return; }
+
+    const btn = document.getElementById('release-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Releasing...';
+
+    const deviceId = getDeviceId();
+
+    try {
+      // Check cooldown
+      const canPost = await rpc('can_post', { p_device_id: deviceId });
+      if (!canPost) {
+        const secs = await rpc('cooldown_seconds', { p_device_id: deviceId });
+        showScreen('screen-cooldown');
+        startCountdown(secs, 'cooldown-timer');
+        btn.disabled = false;
+        btn.innerHTML = 'Release it →';
+        return;
+      }
+
+      // Insert rant
+      await insertRant(alias, message, deviceId);
+
+      // Get a random rant back
+      const randRant = await rpc('get_random_rant', { p_device_id: deviceId });
+
+      // Record delivery
+      if (randRant && randRant.id) {
+        await insertDelivery(deviceId, randRant.id);
+      }
+
+      // Show confirmation
+      const head = headlines[Math.floor(Math.random() * headlines.length)];
+      document.getElementById('confirm-title').textContent = head.title;
+      document.getElementById('confirm-sub').innerHTML = head.sub;
+
+      if (randRant && randRant.message) {
+        document.getElementById('recv-message').textContent = randRant.message;
+        document.getElementById('recv-from').textContent = randRant.alias;
+        document.getElementById('recv-time').textContent = timeAgo(randRant.created_at);
+      } else {
+        document.getElementById('recv-message').textContent = "You're one of the first here. No rants yet — but yours is out there now.";
+        document.getElementById('recv-from').textContent = 'the void';
+        document.getElementById('recv-time').textContent = 'just now';
+      }
+
+      const card = document.getElementById('recv-card');
+      card.classList.remove('animate');
+      void card.offsetWidth;
+
+      showScreen('screen-sent');
+      setTimeout(() => {
+        card.classList.add('animate');
+        startCountdown(86399, 'sent-countdown');
+      }, 200);
+
+    } catch (err) {
+      showError('Something went wrong. Please try again.');
+      console.error(err);
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'Release it →';
+  }
+
+  // ─── ON LOAD: check cooldown ──────────────────────────────────
+  async function init() {
+    const deviceId = getDeviceId();
+    try {
+      const canPost = await rpc('can_post', { p_device_id: deviceId });
+      if (!canPost) {
+        const secs = await rpc('cooldown_seconds', { p_device_id: deviceId });
+        showScreen('screen-cooldown');
+        startCountdown(secs, 'cooldown-timer');
+      }
+    } catch(e) {
+      // If check fails, just show home screen normally
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
