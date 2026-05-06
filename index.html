@@ -576,13 +576,15 @@
     const deviceId = getDeviceId();
     try {
       const canPost = await rpc('can_post', { p_device_id: deviceId });
-      if (!canPost) {
-        const secs = await rpc('cooldown_seconds', { p_device_id: deviceId });
+      const allowed = Array.isArray(canPost) ? canPost[0] : canPost;
+      if (!allowed) {
+        const secsArr = await rpc('cooldown_seconds' , { p_device_id: deviceId });
+        const secs = Array.isArray(secsArr) ? secsArr[0] : secsArr;
         showScreen('screen-cooldown');
         startCountdown(secs, 'cooldown-timer');
       }
     } catch(e) {
-      // If check fails, just show home screen normally
+      console.error('Init error' , e);
     }
   }
 
