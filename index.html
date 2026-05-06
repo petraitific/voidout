@@ -530,7 +530,7 @@
       
       // Get a random rant back
       const randRant = await rpc('get_random_rant', { p_device_id: deviceId });
-      console.log('Random rant result:', randRant);
+      const randRant = randRantArr && randRantArr[0] ? randRantArr[0] : null;
 
       // Record delivery
       if (randRant && randRant.id) {
