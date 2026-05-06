@@ -525,8 +525,12 @@
       // Insert rant
       await insertRant(alias, message, deviceId);
 
+      // Small delay to ensure insert is committed
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
       // Get a random rant back
       const randRant = await rpc('get_random_rant', { p_device_id: deviceId });
+      console.log('Random rant result:', randRant);
 
       // Record delivery
       if (randRant && randRant.id) {
